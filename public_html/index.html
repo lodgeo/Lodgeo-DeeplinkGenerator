@@ -10,6 +10,7 @@ and open the template in the editor.
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="js/libs/jqueryui/jquery-ui.css">
+
         <script src="js/libs/jquery/jquery.js"></script>
         <script src="js/libs/jqueryui/jquery-ui.js"></script>
         
@@ -52,14 +53,143 @@ and open the template in the editor.
                   .append( "<a>" + item.destinationName + "</a>" )
                   .appendTo( ul );
               };
+              
+              $( "#page" ).selectmenu({
+                  change: function( event, ui ) {
+                      document.getElementById("destination").value = "";
+                      document.getElementById("destinationId").value = "";
+                      document.getElementById("destinationType").value = "";
+                      document.getElementById("linkContainer").style.display="none";
+                      
+                      if (ui.item.value.valueOf() === "search".valueOf() ||
+                              ui.item.value.valueOf() === "hotel".valueOf() ||
+                              ui.item.value.valueOf() === "checkout".valueOf()) {
+                          document.getElementById("searchContainer").
+                                  style.display='';
+                      }
+                      else {
+                          document.getElementById("searchContainer").
+                                  style.display='none';
+                      }
+                  }
+              });
+              
+              $( "#checkin" ).datepicker();
+              $( "#checkout" ).datepicker();
+            
+              $( "input[type=submit], a, button" )
+                .button()
+                .click(function( event ) {
+                  event.preventDefault();
+          
+                  var url = "lodgeo://";
+                  var query = "?";
+                  
+                  var pageSelect = document.getElementById("page");
+                  var page = pageSelect.options[pageSelect.selectedIndex].value;
+                  
+                  url = url + page;
+                  
+                  if (page.valueOf() === "search".valueOf() ||
+                          page.valueOf() === "hotel".valueOf() ||
+                          page.valueOf() === "checkout".valueOf()) {
+                      if (document.getElementById("destinationType").value.valueOf() === 
+                              "CITY".valueOf()) {
+                          url = url + "/" + "city";
+                      }
+                      else if (document.getElementById("destinationType").value.valueOf() === 
+                              "REGION".valueOf()) {
+                          url = url + "/" + "region";
+                      }
+                      
+                      url = url + "/" + document.getElementById("destinationId").value.valueOf();
+                  }
+                  
+                  // parameters
+                  // TODO add params
+                  
+                  if ("?" !== query) {
+                      url += query;
+                  }
+                  
+                  document.getElementById("link").innerHTML = "<a href='"+url+"'>"+url+"</a>";
+                  
+                  document.getElementById("linkContainer").
+                                  style.display='';
+                });
             });
+            
+            
         </script>
     </head>
     <body>
         <h1>Lodgeo Deeplink Generator</h1>
-        <h2>Select a location (type "j" for a start):</h2>
-        <input id="destination">
-        <input id="destinationId">
-        <input id="destinationType">
+        <button>Generate link</button>
+        <div id="linkContainer" style="display: none" >
+            <h2 id="link"></h2>
+        </div>
+        <div id="pageContainer">
+            <h2>Select a page</h2>
+            <select name="page" id="page">
+                <option value="home">Homepage (default)</option>
+                <option value="search">Search (city/poi/region)</option>
+                <option value="hotel">Hotel</option>
+                <option value="checkout">Checkout</option>
+                <option value="deals">Deals (around me / tonight)</option>
+                <option value="myprofile">My Details / Profile</option>
+                <option value="recentviews">Recently Viewed</option>
+                <option value="recentsearches">Recently Searched</option>
+                <option value="mybookings">My Bookings</option>
+                <option value="aboutus">About us</option>
+                <option value="invitefriend">Invite a friend</option>
+            </select>
+        </div>
+        <br>
+        <div id="searchContainer" style="display: none" >
+            <h2>Hotel/Search info</h2>
+            <label for="destination">Select a location/hotel: </label>
+            <input id="destination">
+            <input id="destinationId" type="hidden">
+            <input id="destinationType" type="hidden">
+            <br>
+            <label for="checkin">Check-In: </label>
+            <input type="text" id="checkin">
+            <br>
+            <label for="checkout">Check-Out: </label>
+            <input id="checkout" >
+            <br>
+            <label>Number of adults: </label>
+            <select name="adults" id="adults">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+            <br>
+            <label>Number of children: </label>
+            <select name="children" id="children">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+            <br>
+            <label>Number of rooms </label>
+            <select name="rooms" id="rooms">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+        </div>
+        <br>
+        <div id="campaignContainer" >
+            <h2>Campaign info:</h2>
+            <label for="campaign">Campaign name</label> <input id="campaign"><br>
+            <label for="source">Source</label> <input id="source"><br>
+            <label for="medium">Medium</label> <input id="medium"><br>
+            <label for="adId">Ad id</label> <input id="adId"><br>
+        </div>
+        <br>
     </body>
 </html>
