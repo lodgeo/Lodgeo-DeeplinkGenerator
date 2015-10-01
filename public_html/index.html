@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Lodgeo Deeplink Generator</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="js/libs/jqueryui/jquery-ui.css">
+        <script src="js/libs/jquery/jquery.js"></script>
+        <script src="js/libs/jqueryui/jquery-ui.js"></script>
+        
+        <script>
+            $(function() {
+ 
+             $( "#destination" ).autocomplete({
+                minLength: 3,
+                source: function( request, response ) {
+                $.ajax({
+                  type: "POST",
+                  url: "http://dev.lodgeo.com:8080/lodgeo/searchLocationByKeyWords",
+                  dataType: "json",
+                  data:  JSON.stringify({
+                    keywords: [
+                        request.term
+                    ], 
+                    languageId : "en",
+                    includeHotels : 1
+                  }),
+                  success: function( data ) {
+                    response( data );
+                  }
+                });
+              },
+                focus: function( event, ui ) {
+                  $( "#destination" ).val( ui.item.destinationName );
+                  return false;
+                },
+                select: function( event, ui ) {
+                  $( "#destination" ).val( ui.item.destinationName );
+                  $( "#destinationId" ).val( ui.item.destinationId );
+                  $( "#destinationType" ).val( ui.item.destinationType );
+                  
+                  return false;
+                }
+              })
+              .autocomplete( "instance" )._renderItem = function( ul, item ) {
+                return $( "<li>" )
+                  .append( "<a>" + item.destinationName + "</a>" )
+                  .appendTo( ul );
+              };
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Lodgeo Deeplink Generator</h1>
+        <h2>Select a location (type "j" for a start):</h2>
+        <input id="destination">
+        <input id="destinationId">
+        <input id="destinationType">
+    </body>
+</html>
