@@ -103,6 +103,9 @@ and open the template in the editor.
                       }
                       
                       url = url + "/" + document.getElementById("destinationId").value.valueOf();
+                      
+                      query = query + "entityName=" + 
+                              encodeURI(document.getElementById("destination").value) + "&";
                   }
                   
                   // parameters
