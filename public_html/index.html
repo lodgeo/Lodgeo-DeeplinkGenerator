@@ -17,7 +17,7 @@ and open the template in the editor.
         <script>
             function stringToTimestamp(stringDate, separator) {
                 var split = stringDate.split(separator);
-                var date = new Date(split[2], split[1], split[0]); //Y M D
+                var date = new Date(split[2], Number(split[1])-1, split[0]); //Y M D
                 
                 return date.getTime();
             }
@@ -36,7 +36,7 @@ and open the template in the editor.
                         request.term
                     ], 
                     languageId : "en",
-                    includeHotels : 0
+                    includeHotels : 1
                   }),
                   success: function( data ) {
                     response( data );
@@ -158,25 +158,106 @@ and open the template in the editor.
                           "&medium=" + encodeURI(document.getElementById("medium").value) +
                           "&ad_id=" + encodeURI(document.getElementById("adId").value) + "&";
                   
+                if (page.valueOf() === "search".valueOf() ||
+                            page.valueOf() === "deals".valueOf()) {
+                        var stars = "";
+                        var amenities = "";
+                        var currency = "";
+
+                        // star rating
+                        if (document.getElementById("oneStar").checked) {
+                            stars = stars + "1,";
+                        }
+
+                        if (document.getElementById("twoStar").checked) {
+                            stars = stars + "2,";
+                        }
+
+                        if (document.getElementById("threeStar").checked) {
+                            stars = stars + "3,";
+                        }
+
+                        if (document.getElementById("fourStar").checked) {
+                            stars = stars + "4,";
+                        }
+
+                        if (document.getElementById("fiveStar").checked) {
+                            stars = stars + "5,";
+                        }
+
+                        if (0 < stars.length) {
+                            stars = stars.substring(0, stars.length - 1);
+                            query = query + "stars="+encodeURI(stars)+"&";
+                        }
+                        
+                        // amenities
+                        if (document.getElementById("BEACH").checked) {
+                            amenities = amenities + "BEACH,";
+                        }
+
+                        if (document.getElementById("BAR").checked) {
+                            amenities = amenities + "BAR,";
+                        }
+
+                        if (document.getElementById("WLAN").checked) {
+                            amenities = amenities + "WLAN,";
+                        }
+
+                        if (document.getElementById("WLNS").checked) {
+                            amenities = amenities + "WLNS,";
+                        }
+
+                        if (document.getElementById("POOL").checked) {
+                            amenities = amenities + "POOL,";
+                        }
+
+                        if (0 < amenities.length) {
+                            amenities = amenities.substring(0, amenities.length - 1);
+                            query = query + "amenities="+ encodeURI(amenities)+"&";
+                        }
+                        
+                        // sort
+                        query = query + "sort="+
+                                encodeURI(document.getElementById("sort").value)+"&";
+                        
+                        // price 
+                        currency = document.getElementById("currency").value;
+                        
+                        if (0 < currency.length) {
+                            query = query + "currency=" + currency + "&minRate=" + 
+                                    document.getElementById("minRate").value +
+                                    "&maxRate=" + document.getElementById("maxRate").value+"&";
+                        }
+                        
+                        // brands
+                        query = query + "brands="+
+                                encodeURI(document.getElementById("brands").value)+"&";
+                        
+                        // distance
+                        var distance = Number(document.getElementById("distance").value)*
+                                Number(document.getElementById("distanceUnit").value);
+                        
+                        query = query + "distance=" + encodeURI(distance) + "&";
+                    }
+                      
                   if ("?" !== query) {
                       url += query;
                   }
                   
-                  document.getElementById("link").innerHTML = "<a href='"+url+"'>"+url+"</a>";
+                  document.getElementById("link").innerHTML = url;
                   
                   document.getElementById("linkContainer").
                                   style.display='';
                 });
             });
-            
-            
         </script>
     </head>
     <body>
         <h1>Lodgeo Deeplink Generator</h1>
         <button>Generate link</button>
         <div id="linkContainer" style="display: none" >
-            <p id="link"></p>
+            <textarea id="link" name="link" rows="5" cols="100">
+            </textarea>
         </div>
         <div id="pageContainer">
             <h2>Select a page</h2>
@@ -239,18 +320,18 @@ and open the template in the editor.
         <div id="filterContainer" style="display: none" >
             <h2>Filter info</h2>
             <label>Hotel stars: </label>
-            <label><input type="checkbox" name="oneStar">1-star</label>
-            <label><input type="checkbox" name="twoStar">2-star</label>
-            <label><input type="checkbox" name="threeStar">3-star</label>
-            <label><input type="checkbox" name="fourStar">4-star</label>
-            <label><input type="checkbox" name="fiveStar">5-star</label>
+            <label><input type="checkbox" checked="checked" id="oneStar" name="oneStar">1-star</label>
+            <label><input type="checkbox" checked="checked" id="twoStar" name="twoStar">2-star</label>
+            <label><input type="checkbox" checked="checked" id="threeStar" name="threeStar">3-star</label>
+            <label><input type="checkbox" checked="checked" id="fourStar" name="fourStar">4-star</label>
+            <label><input type="checkbox" checked="checked" id="fiveStar" name="fiveStar">5-star</label>
             <br>
             <label>Amenities: </label>
-            <label><input type="checkbox" name="BEACH">Beach</label>
-            <label><input type="checkbox" name="BAR">Bar</label>
-            <label><input type="checkbox" name="WLAN">Wifi</label>
-            <label><input type="checkbox" name="WLNS">Spa/Wellness</label>
-            <label><input type="checkbox" name="POOL">Pool</label>
+            <label><input type="checkbox" checked="checked" id="BEACH" name="BEACH">Beach</label>
+            <label><input type="checkbox" checked="checked" id="BAR" name="BAR">Bar</label>
+            <label><input type="checkbox" checked="checked" id="WLAN" name="WLAN">Wifi</label>
+            <label><input type="checkbox" checked="checked" id="WLNS" name="WLNS">Spa/Wellness</label>
+            <label><input type="checkbox" checked="checked" id="POOL" name="POOL">Pool</label>
             <br>
             <label>Sort: </label>
             <select name="sort" id="sort">
@@ -284,8 +365,14 @@ and open the template in the editor.
             <label for="distance">Distance: </label>
             <input id="distance">
             <select name="distanceUnit" id="distanceUnit">
-                <option value="mi">Miles (mi)</option>
-                <option value="km">Kilometers (km)</option>
+                <option value="1609.34400061469216">Miles (mi)</option>
+                <option value="1000">Kilometers (km)</option>
+            </select>
+            <br>
+            <label>Brands: </label>
+            <select name="brands" id="brands">
+                <option value="0">All Hotels</option>
+                <option value="1">Brands only</option>
             </select>
         </div>
         <div id="campaignContainer" >
