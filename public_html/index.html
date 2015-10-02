@@ -15,6 +15,13 @@ and open the template in the editor.
         <script src="js/libs/jqueryui/jquery-ui.js"></script>
         
         <script>
+            function stringToTimestamp(stringDate, separator) {
+                var split = stringDate.split(separator);
+                var date = new Date(split[2], split[1], split[0]); //Y M D
+                
+                return date.getTime();
+            }
+            
             $(function() {
  
              $( "#destination" ).autocomplete({
@@ -29,7 +36,7 @@ and open the template in the editor.
                         request.term
                     ], 
                     languageId : "en",
-                    includeHotels : 1
+                    includeHotels : 0
                   }),
                   success: function( data ) {
                     response( data );
@@ -61,6 +68,7 @@ and open the template in the editor.
                       document.getElementById("destinationType").value = "";
                       document.getElementById("linkContainer").style.display="none";
                       
+                      // search info display
                       if (ui.item.value.valueOf() === "search".valueOf() ||
                               ui.item.value.valueOf() === "hotel".valueOf() ||
                               ui.item.value.valueOf() === "checkout".valueOf()) {
@@ -71,11 +79,37 @@ and open the template in the editor.
                           document.getElementById("searchContainer").
                                   style.display='none';
                       }
+                      
+                      // filter display
+                      if (ui.item.value.valueOf() === "search".valueOf() ||
+                              ui.item.value.valueOf() === "deals".valueOf()) {
+                          document.getElementById("filterContainer").
+                                  style.display='';
+                      }
+                      else {
+                          document.getElementById("filterContainer").
+                                  style.display='none';
+                      }
+                      
+                      // booking detail display
+                      if (ui.item.value.valueOf() === "mybookings".valueOf()) {
+                          document.getElementById("bookingContainer").
+                                  style.display='';
+                      }
+                      else {
+                          document.getElementById("bookingContainer").
+                                  style.display='none';
+                      }
                   }
               });
               
-              $( "#checkin" ).datepicker();
-              $( "#checkout" ).datepicker();
+              $( "#checkin" ).datepicker({ 
+                  dateFormat: "dd/mm/yy"
+              });
+              
+              $( "#checkout" ).datepicker( { 
+                  dateFormat: "dd/mm/yy"
+              });
             
               $( "input[type=submit], a, button" )
                 .button()
@@ -104,12 +138,25 @@ and open the template in the editor.
                       
                       url = url + "/" + document.getElementById("destinationId").value.valueOf();
                       
-                      query = query + "entityName=" + 
-                              encodeURI(document.getElementById("destination").value) + "&";
+                      var checkin = stringToTimestamp( document.getElementById("checkin").value.valueOf(), "/");
+                      var checkout = stringToTimestamp( document.getElementById("checkout").value.valueOf(), "/");
+                      
+                      query = "?entityName=" + encodeURI(document.getElementById("destination").value) +
+                              "&checkin=" + encodeURI(checkin) +
+                              "&checkout=" + encodeURI(checkout) +
+                              "&rooms=" + encodeURI(document.getElementById("rooms").value) +
+                              "&adults=" + encodeURI(document.getElementById("adults").value) +
+                              "&children=" + encodeURI(document.getElementById("children").value) + "&";
+                  }
+                  else if (page.valueOf() === "mybookings".valueOf()) {
+                      url = url + "/" + document.getElementById("bookingId").value.valueOf();
                   }
                   
                   // parameters
-                  // TODO add params
+                  query = query + "campaign=" + encodeURI(document.getElementById("campaign").value) + 
+                          "&source=" + encodeURI( document.getElementById("source").value) +
+                          "&medium=" + encodeURI(document.getElementById("medium").value) +
+                          "&ad_id=" + encodeURI(document.getElementById("adId").value) + "&";
                   
                   if ("?" !== query) {
                       url += query;
@@ -129,7 +176,7 @@ and open the template in the editor.
         <h1>Lodgeo Deeplink Generator</h1>
         <button>Generate link</button>
         <div id="linkContainer" style="display: none" >
-            <h2 id="link"></h2>
+            <p id="link"></p>
         </div>
         <div id="pageContainer">
             <h2>Select a page</h2>
@@ -147,7 +194,11 @@ and open the template in the editor.
                 <option value="invitefriend">Invite a friend</option>
             </select>
         </div>
-        <br>
+        <div id="bookingContainer" style="display: none" >
+            <h2>Booking info</h2>
+            <label for="bookingId">Booking ID (Lodgeo internal value): </label>
+            <input id="bookingId">
+        </div>
         <div id="searchContainer" style="display: none" >
             <h2>Hotel/Search info</h2>
             <label for="destination">Select a location/hotel: </label>
@@ -185,7 +236,58 @@ and open the template in the editor.
                 <option value="4">4</option>
             </select>
         </div>
-        <br>
+        <div id="filterContainer" style="display: none" >
+            <h2>Filter info</h2>
+            <label>Hotel stars: </label>
+            <label><input type="checkbox" name="oneStar">1-star</label>
+            <label><input type="checkbox" name="twoStar">2-star</label>
+            <label><input type="checkbox" name="threeStar">3-star</label>
+            <label><input type="checkbox" name="fourStar">4-star</label>
+            <label><input type="checkbox" name="fiveStar">5-star</label>
+            <br>
+            <label>Amenities: </label>
+            <label><input type="checkbox" name="BEACH">Beach</label>
+            <label><input type="checkbox" name="BAR">Bar</label>
+            <label><input type="checkbox" name="WLAN">Wifi</label>
+            <label><input type="checkbox" name="WLNS">Spa/Wellness</label>
+            <label><input type="checkbox" name="POOL">Pool</label>
+            <br>
+            <label>Sort: </label>
+            <select name="sort" id="sort">
+                <option value="Sort_default">Best deals</option>
+                <option value="Sort_nameAz">Hotel name A-Z</option>
+                <option value="Sort_nameZa">Hotel name Z-A</option>
+                <option value="Sort_priceLoHi">Price ascending</option>
+                <option value="Sort_priceHiLo">Price descending</option>
+                <option value="Sort_stars0to5">Stars ascending</option>
+                <option value="Sort_stars5to0">Stars descending</option>
+                <option value="Sort_ratingsLoHi">Ratings ascending</option>
+                <option value="Sort_ratingsHiLo">Ratings descending</option>
+                <option value="Sort_distanceLoHi">Distance ascending</option>
+                <option value="Sort_distanceHiLo">Distance descending</option>
+            </select>
+            <br>
+            <label>Currency (if users have free will price values will be ignored): </label>
+            <select name="currency" id="currency">
+                <option value="">Free will for users</option>
+                <option value="GBP">Her Majesty Pounds (GBP)</option>
+                <option value="USD">Wild west Dollars (USD)</option>
+                <option value="EUR">Euro (EUR)</option>
+            </select>
+            <br>
+            <label for="minRate">Minimum price: </label>
+            <input id="minRate">
+            <br>
+            <label for="maxRate">Maximum price: </label>
+            <input id="maxRate">
+            <br>
+            <label for="distance">Distance: </label>
+            <input id="distance">
+            <select name="distanceUnit" id="distanceUnit">
+                <option value="mi">Miles (mi)</option>
+                <option value="km">Kilometers (km)</option>
+            </select>
+        </div>
         <div id="campaignContainer" >
             <h2>Campaign info:</h2>
             <label for="campaign">Campaign name</label> <input id="campaign"><br>
@@ -193,6 +295,5 @@ and open the template in the editor.
             <label for="medium">Medium</label> <input id="medium"><br>
             <label for="adId">Ad id</label> <input id="adId"><br>
         </div>
-        <br>
     </body>
 </html>
